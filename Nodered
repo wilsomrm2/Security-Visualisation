@@ -1,0 +1,697 @@
+[
+    {
+        "id": "d64cd37852b798bb",
+        "type": "csv",
+        "z": "73e10e77435d58ae",
+        "name": "",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": false,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 170,
+        "y": 220,
+        "wires": [
+            [
+                "c3305e38eb10435d"
+            ]
+        ]
+    },
+    {
+        "id": "8495151184853225",
+        "type": "mqtt in",
+        "z": "73e10e77435d58ae",
+        "name": "",
+        "topic": "/log/ufw",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "3f679f5c.6832b",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 100,
+        "wires": [
+            [
+                "ebc4d3cf291bd9e8"
+            ]
+        ]
+    },
+    {
+        "id": "ebc4d3cf291bd9e8",
+        "type": "function",
+        "z": "73e10e77435d58ae",
+        "name": "Create CSV Wrapper",
+        "func": "var dateA = msg.payload.split(\" \")[0];\nvar dateC = msg.payload.split(\" \")[2];\nvar dateD = msg.payload.split(\" \")[3];\nvar ip = (msg.payload.split(\" \")[12]).split(\"=\")[1];\nvar port = ((msg.payload.split(\"DPT\")[1]).split(\"=\")[1]).split(\" \")[0];\n\nvar date = dateA + \" \" + dateC + \" \" + dateD;\nvar header=\"ip,port,lat,lon,date, \\n\";\n\nmsg.payload=header+\"\\\"\"+ip+\"\\\",\\\"\"+port+\"\\\",,,\\\"\"+date+\"\\\"\";\n\n\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 200,
+        "y": 160,
+        "wires": [
+            [
+                "d64cd37852b798bb"
+            ]
+        ]
+    },
+    {
+        "id": "c3305e38eb10435d",
+        "type": "function",
+        "z": "73e10e77435d58ae",
+        "name": "Is IP Reserved",
+        "func": "global.set(\"ip\", msg.payload.ip);\nglobal.set(\"port\", msg.payload.port);\nglobal.set(\"date\", msg.payload.date);\n\n\nmsg.payload = global.get('ip');\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 200,
+        "y": 280,
+        "wires": [
+            [
+                "00e68e2d7e1c9d45"
+            ]
+        ]
+    },
+    {
+        "id": "0b215ad95d21d05b",
+        "type": "function",
+        "z": "73e10e77435d58ae",
+        "name": "Get GEO Remote",
+        "func": "node.warn(msg.payload.length);\nif (msg.payload.length <= 0){\n    node.warn(\"GEO Not Found Locally\");\n    msg.topic = \"https://api.iplocation.net/?ip=\" + global.get('ip');\n   // node.warn(msg.payload.lat);\n   // node.warn(msg.payload.lon);\n    return msg;\n}\nelse {\n    node.warn(\"GEO Found Locally\");\n    global.set(\"lat\", msg.payload.lat[1]);\n    global.set(\"lon\", msg.payload.lon[1]);\n    global.set(\"country_code\", msg.payload.country_short[1]);\n\n   // node.warn(msg.payload.lat);\n  // node.warn(msg.payload.lon);\n    return msg;\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 420,
+        "wires": [
+            [
+                "6b3159c998713d4e",
+                "1023ccda519015e4",
+                "bc2613da55acf330"
+            ]
+        ]
+    },
+    {
+        "id": "00e68e2d7e1c9d45",
+        "type": "split",
+        "z": "73e10e77435d58ae",
+        "name": "",
+        "splt": ".",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 170,
+        "y": 340,
+        "wires": [
+            [
+                "b7a754c8b26c788e"
+            ]
+        ]
+    },
+    {
+        "id": "b7a754c8b26c788e",
+        "type": "string",
+        "z": "73e10e77435d58ae",
+        "name": "toInteger",
+        "methods": [
+            {
+                "name": "toInteger",
+                "params": []
+            }
+        ],
+        "prop": "payload",
+        "propout": "payload",
+        "object": "msg",
+        "objectout": "msg",
+        "x": 180,
+        "y": 400,
+        "wires": [
+            [
+                "2575753dac6bde5e"
+            ]
+        ]
+    },
+    {
+        "id": "2575753dac6bde5e",
+        "type": "switch",
+        "z": "73e10e77435d58ae",
+        "name": "",
+        "property": "parts.index",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "2",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "3",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": true,
+        "outputs": 4,
+        "x": 170,
+        "y": 480,
+        "wires": [
+            [
+                "2f3a1ba3791a10c3"
+            ],
+            [
+                "964f4c117c70efd6"
+            ],
+            [
+                "9ad0bde17905da89"
+            ],
+            [
+                "4ec1082a511c5cab"
+            ]
+        ]
+    },
+    {
+        "id": "2f3a1ba3791a10c3",
+        "type": "change",
+        "z": "73e10e77435d58ae",
+        "name": "W",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload*16777216",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "w",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 310,
+        "y": 460,
+        "wires": [
+            [
+                "1e7a0c41cda33a60"
+            ]
+        ]
+    },
+    {
+        "id": "964f4c117c70efd6",
+        "type": "change",
+        "z": "73e10e77435d58ae",
+        "name": "X",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload*65536",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "x",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 330,
+        "y": 500,
+        "wires": [
+            [
+                "1e7a0c41cda33a60"
+            ]
+        ]
+    },
+    {
+        "id": "9ad0bde17905da89",
+        "type": "change",
+        "z": "73e10e77435d58ae",
+        "name": "Y",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload*256",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "y",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 350,
+        "y": 540,
+        "wires": [
+            [
+                "1e7a0c41cda33a60"
+            ]
+        ]
+    },
+    {
+        "id": "4ec1082a511c5cab",
+        "type": "change",
+        "z": "73e10e77435d58ae",
+        "name": "Z",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload *1",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "z",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 370,
+        "y": 580,
+        "wires": [
+            [
+                "1e7a0c41cda33a60"
+            ]
+        ]
+    },
+    {
+        "id": "1e7a0c41cda33a60",
+        "type": "function",
+        "z": "73e10e77435d58ae",
+        "name": "Find IP in Reserved Table",
+        "func": "\ncontext.data = context.data || new Object();\n\nswitch (msg.topic) {\n    case \"w\":\n        context.data.task1 = msg.payload;\n        msg = null;\n        break;\n    case \"x\":\n        context.data.task2 = msg.payload;\n        msg = null;\n        break;\n    case \"y\":\n        context.data.task3 = msg.payload;\n        msg = null;\n        break;\n    case \"z\":\n        context.data.task4 = msg.payload;\n        msg = null;\n        break;\n\n    default:\n        msg = null;\n        break;\n\n}\n\nif (context.data.task1 != null && context.data.task2 != null && context.data.task3 != null && context.data.task4 != null) {\n    var msg2 = new Object();\n    msg2.payload = context.data.task1 + context.data.task2 + context.data.task3+context.data.task4;\n    context.data = null;\n    global.set(\"ip_num\", msg2.payload);\n    msg2.topic = \"SELECT * FROM reserved WHERE start_ip_num <= \" + msg2.payload + \" AND end_ip_num >= \" + msg2.payload;\n    return msg2;\n} else return msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "// Code added here will be run when the\n// node is being stopped or re-deployed.\nvar w = flow.get(\"w\");\nvar x = flow.get(\"x\");\nvar y = flow.get(\"y\");\nvar z = flow.get(\"z\");\n\nmsg.payload = w + x + y + z;\nreturn msg;",
+        "libs": [],
+        "x": 570,
+        "y": 540,
+        "wires": [
+            [
+                "9e49dfab289726cd"
+            ]
+        ]
+    },
+    {
+        "id": "9e49dfab289726cd",
+        "type": "sqlite",
+        "z": "73e10e77435d58ae",
+        "mydb": "bd519c5c32999c95",
+        "sqlquery": "msg.topic",
+        "sql": "SELECT * FROM IP2LatLon WHERE country_short=\"NZ\"",
+        "name": "geo",
+        "x": 530,
+        "y": 480,
+        "wires": [
+            [
+                "90e57cf11a1b423b"
+            ]
+        ]
+    },
+    {
+        "id": "9ffd24f43fe98ac8",
+        "type": "sqlite",
+        "z": "73e10e77435d58ae",
+        "mydb": "bd519c5c32999c95",
+        "sqlquery": "msg.topic",
+        "sql": "SELECT * FROM IP2LatLon WHERE country_short=\"NZ\"",
+        "name": "geo",
+        "x": 530,
+        "y": 420,
+        "wires": [
+            [
+                "0b215ad95d21d05b"
+            ]
+        ]
+    },
+    {
+        "id": "90e57cf11a1b423b",
+        "type": "function",
+        "z": "73e10e77435d58ae",
+        "name": "GetGeoLocal",
+        "func": "if(msg.payload.length > 0){\n   node.warn(\"Is a Reserved IP\");\n   //node.warn(global.get('ip_num'));\n   //node.warn(global.get('ip'));\n}\nelse{    \n   node.warn(\"IP is not Reserved\");\n   var ip_num = global.get('ip_num');\n   var msg2 = new Object();\n   msg2.topic = \"SELECT lat,lon,country_short FROM ip2geo WHERE start_ip_num <= \" +ip_num + \" AND end_ip_num >= \" + ip_num;\n   return msg2;\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 710,
+        "y": 480,
+        "wires": [
+            [
+                "9ffd24f43fe98ac8"
+            ]
+        ]
+    },
+    {
+        "id": "6b3159c998713d4e",
+        "type": "exec",
+        "z": "73e10e77435d58ae",
+        "command": "curl -X GET  ",
+        "addpay": "topic",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "Get GEO information from WebService",
+        "x": 510,
+        "y": 360,
+        "wires": [
+            [
+                "3a658bae0d275f69"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "3a658bae0d275f69",
+        "type": "function",
+        "z": "73e10e77435d58ae",
+        "name": "Gather IP and CountryCode",
+        "func": "var country_code=msg.payload.split(\",\")[4];\nvar code = country_code.split(\":\")[1];\ncode = code.split(\"\\\"\")[1];\nglobal.set(\"country_code\",code);\n\n//msg.topic=code;\n\n//var ip_code=msg.payload.split(\",\")[0];\n//var ip = ip_code.split(\":\")[1];\n//ip = ip.split(\"\\\"\")[1];\n\n//node.warn(code);\n//node.warn(ip);\n\n//var outStr=\"{\\\"ip\\\":\\\"\"+ip+\"\\\",\\\"country_short\\\":\\\"\"+code+\"\\\"\";\n\n//msg.topic = \"SELECT lat,lon FROM ip2geo WHERE country_short = \\\"\" + code + \"\\\" LIMIT 1\";\n\nmsg.topic = \"SELECT latitude,longitude FROM country2geo WHERE country = \\\"\" + code + \"\\\" LIMIT 1\";\n\n\n//node.warn(outStr);\n\n//msg.payload=ip;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 300,
+        "wires": [
+            [
+                "39399a7a3e36fe41"
+            ]
+        ]
+    },
+    {
+        "id": "39399a7a3e36fe41",
+        "type": "sqlite",
+        "z": "73e10e77435d58ae",
+        "mydb": "bd519c5c32999c95",
+        "sqlquery": "msg.topic",
+        "sql": "SELECT * FROM IP2LatLon WHERE country_short=\"NZ\"",
+        "name": "geo",
+        "x": 410,
+        "y": 240,
+        "wires": [
+            [
+                "96267e49af1bcc64"
+            ]
+        ]
+    },
+    {
+        "id": "96267e49af1bcc64",
+        "type": "function",
+        "z": "73e10e77435d58ae",
+        "name": "Set Country Location to IP",
+        "func": "var lat;\nvar lon;\n\nif ((typeof msg.payload) == \"object\"){\n\n    lat = msg.payload[0].latitude;\n    lon = msg.payload[0].longitude;\n\n    node.warn(\"GEO Found Remote\");\n    global.set(\"lat\", lat);\n    global.set(\"lon\", lon);\n    node.warn(lat);\n    node.warn(lon);\n\n   \n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 240,
+        "wires": [
+            [
+                "1023ccda519015e4",
+                "bc2613da55acf330"
+            ]
+        ]
+    },
+    {
+        "id": "f851ccd20905187e",
+        "type": "sqlite",
+        "z": "73e10e77435d58ae",
+        "mydb": "bd519c5c32999c95",
+        "sqlquery": "msg.topic",
+        "sql": "SELECT * FROM IP2LatLon WHERE country_short=\"NZ\"",
+        "name": "geo",
+        "x": 1230,
+        "y": 240,
+        "wires": [
+            [
+                "f8e0681aaa92e2b2"
+            ]
+        ]
+    },
+    {
+        "id": "1023ccda519015e4",
+        "type": "function",
+        "z": "73e10e77435d58ae",
+        "name": "Insert into IP_Blocked Table",
+        "func": "var ip = global.get('ip');\nvar port = global.get('port');\nvar date = global.get('date');\nvar lat = global.get('lat');\nvar lon = global.get('lon');\n\nmsg.topic = \"INSERT INTO geo_lookup VALUES (\"+\"\\\"\"+ ip   + \"\\\", \\\"\" + port + \"\\\", \\\"\" + lat  + \"\\\", \\\"\" + lon  + \"\\\", \\\"\" + date + \"\\\"  )\";\n\nnode.warn(msg.topic);\n\n\nreturn msg;\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "// Code added here will be run when the\n// node is being stopped or re-deployed.\nvar w = flow.get(\"w\");\nvar x = flow.get(\"x\");\nvar y = flow.get(\"y\");\nvar z = flow.get(\"z\");\n\nmsg.payload = w + x + y + z;\nreturn msg;",
+        "libs": [],
+        "x": 960,
+        "y": 240,
+        "wires": [
+            [
+                "f851ccd20905187e"
+            ]
+        ]
+    },
+    {
+        "id": "bc2613da55acf330",
+        "type": "function",
+        "z": "73e10e77435d58ae",
+        "name": "Update into IP_Blocked Table",
+        "func": "var ip = global.get('ip');\nvar port = global.get('port');\nvar date = global.get('date');\nvar lat = global.get('lat');\nvar lon = global.get('lon');\n\n/*\nnode.warn(global.get('ip'));\nnode.warn(global.get('port'));\nnode.warn(global.get('lat'));\nnode.warn(global.get('lon'));\nnode.warn(global.get('date'));\n*/\nmsg.topic = \"UPDATE geo_lookup SET date=\\\"\" + date + \"\\\", lat=\" + lat + \",lon=\" + lon +\" WHERE ip =\\\"\"+ ip+\"\\\" and port =\\\"\"+ port+\"\\\"\";\nnode.warn(msg.topic);\n\nreturn msg;\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "// Code added here will be run when the\n// node is being stopped or re-deployed.\nvar w = flow.get(\"w\");\nvar x = flow.get(\"x\");\nvar y = flow.get(\"y\");\nvar z = flow.get(\"z\");\n\nmsg.payload = w + x + y + z;\nreturn msg;",
+        "libs": [],
+        "x": 1040,
+        "y": 280,
+        "wires": [
+            [
+                "f851ccd20905187e"
+            ]
+        ]
+    },
+    {
+        "id": "7ce4939b5a34e218",
+        "type": "influxdb out",
+        "z": "73e10e77435d58ae",
+        "influxdb": "caabf316ff08ae5d",
+        "name": "influx",
+        "measurement": "GEO",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "influx",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "5a0e6ae3c535c918",
+        "bucket": "operations",
+        "x": 1350,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "2310068ede66cbbb",
+        "type": "function",
+        "z": "73e10e77435d58ae",
+        "name": "Create CSV",
+        "func": "var ip = global.get('ip');\nvar port = global.get('port');\nvar date = global.get('date');\nvar lat = global.get('lat');\nvar lon = global.get('lon');\nvar code = global.get('country_code');\n\nmsg.payload = \"ip,port,latitude,longitude,date,country_code,\\n\\\"\" + ip + \"\\\",\\\"\" + port + \"\\\",\" + lat + \",\" + lon + \",\\\"\" + date + \"\\\",\\\"\"+code+\"\\\"\";\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 360,
+        "wires": [
+            [
+                "3c043b18029a9c35"
+            ]
+        ]
+    },
+    {
+        "id": "f8e0681aaa92e2b2",
+        "type": "delay",
+        "z": "73e10e77435d58ae",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "5",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1380,
+        "y": 240,
+        "wires": [
+            [
+                "2310068ede66cbbb"
+            ]
+        ]
+    },
+    {
+        "id": "be031618cf1a4ed5",
+        "type": "debug",
+        "z": "73e10e77435d58ae",
+        "name": "debug 33",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1160,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "3c043b18029a9c35",
+        "type": "csv",
+        "z": "73e10e77435d58ae",
+        "name": "",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 1210,
+        "y": 360,
+        "wires": [
+            [
+                "7ce4939b5a34e218",
+                "be031618cf1a4ed5"
+            ]
+        ]
+    },
+    {
+        "id": "3f679f5c.6832b",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "px.cmw-consulting.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "compatmode": false,
+        "protocolVersion": "4",
+        "keepalive": "120",
+        "cleansession": true,
+        "birthTopic": "sensors/connected/test-client",
+        "birthQos": "0",
+        "birthRetain": "true",
+        "birthPayload": "1",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "sensors/connected/test-client",
+        "willQos": "0",
+        "willRetain": "true",
+        "willPayload": "0",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "bd519c5c32999c95",
+        "type": "sqlitedb",
+        "db": "/data/db/geo.db",
+        "mode": "RWC"
+    },
+    {
+        "id": "caabf316ff08ae5d",
+        "type": "influxdb",
+        "hostname": "operations",
+        "port": "8086",
+        "protocol": "http",
+        "database": "influx",
+        "name": "Influx",
+        "usetls": false,
+        "tls": "d50d0c9f.31e858",
+        "influxdbVersion": "2.0",
+        "url": "http://influxdb:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "d50d0c9f.31e858",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": false
+    }
+]
