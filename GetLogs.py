@@ -13,12 +13,10 @@ mqtt_topic = "/log/ufw"
 tail_process = subprocess.Popen(["tail", "-F", "/var/log/ufw.log"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 # Continuously read lines from the tail process and publish them to MQTT
-i=0
 while True:
-        print("start")
+        #print("start")
         while True:
                 line = tail_process.stdout.readline().decode().strip()
                 if line:
-                        print(line)
-                #i+=1
+                        #print(line)
                         publish.single(mqtt_topic, line, hostname=broker_address, port=broker_port)
